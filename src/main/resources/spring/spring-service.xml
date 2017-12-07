@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+	<!-- 包扫描器，扫描带@Service注解的类 -->
+	<context:component-scan base-package="com.activemq.service"></context:component-scan>
+	
+	<!-- 配置activeMQ的统一使用地址，真正产生连接对象的工厂 -->
+	<bean id="targetConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="tcp://localhost:61616" />
+	</bean>
+	<!-- 配置activeMQ连接工厂池 -->
+	<bean id="connectionFactoryPool" class="org.apache.activemq.pool.PooledConnectionFactory"
+		destroy-method="stop">
+		<!-- 配置真正产生连接对象的工厂对象放入连接池中 -->
+		<property name="connectionFactory" ref="targetConnectionFactory" />
+		<!-- 配置连接池数目 -->
+		<property name="maxConnections" value="100"></property>
+	</bean>
+
+	<!-- 配置spring提供的jms模板，用于发送，接收消息 -->
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="connectionFactoryPool" />
+	</bean>
+	<!-- 消息目的地：一个生产者对应一个消费者 -->
+	<bean id="queueDestination" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg>
+			<value>queue</value>
+		</constructor-arg>
+	</bean>
+	<!-- 消息目的地：一个生产者对应多个消费者 -->
+	<bean id="topicDestination" class="org.apache.activemq.command.ActiveMQTopic">
+		<constructor-arg>
+			<value>topic</value>
+		</constructor-arg>
+	</bean>
+
+	<!-- 消息监听器 -->
+    <bean id="consumerMessageListener"
+        class="com.activemq.controller.MessageReceviedController" />
+        
+    <!-- 消息监听容器 -->
+    <bean id="jmsContainer"
+        class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="connectionFactoryPool" />
+        <property name="destination" ref="queueDestination" />
+        <property name="messageListener" ref="consumerMessageListener" />
+    </bean>
+	
+</beans>
