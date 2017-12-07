@@ -42,7 +42,7 @@
 		</constructor-arg>
 	</bean>
 
-	<!-- 消息监听器 -->
+	<!-- 这里是自定义的消息监听器 -->
     <bean id="consumerMessageListener"
         class="com.activemq.controller.MessageReceviedController" />
         
