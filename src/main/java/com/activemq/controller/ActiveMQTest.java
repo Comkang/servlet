@@ -6,6 +6,6 @@ public class ActiveMQTest {
     public static void main(String[] args) {
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring/spring-mvc.xml");
 
-
+        //first brach test
     }
 }
